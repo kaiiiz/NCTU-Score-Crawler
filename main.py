@@ -9,6 +9,9 @@ import pytesseract
 # Crawer
 import requests
 from bs4 import BeautifulSoup
+# print table
+from tabulate import tabulate
+import pandas as pd
 
 parser1 = ArgumentParser(description='Web crawler for NCTU class schedule.')
 parser1.add_argument('username', help='username of NCTU portal', type=str)
@@ -56,4 +59,35 @@ for i in form:
     else:
         submit[i.attrs['name']] = i.attrs['value']
 res = ses.post("https://regist.nctu.edu.tw/login_users_ldap.aspx", data=submit)
-print(res.text)
+
+res = ses.get('https://regist.nctu.edu.tw/p_student/grd_stdscorelist.aspx')
+soup = BeautifulSoup(res.content, 'lxml')
+
+stuInfoTable = soup.find(id='divWorking').find('table').find('tr').find_next('tr')
+stuScoreTable = soup.find(id='divWorking').find('table').find(id='GridView1').findAll('tr')
+stuInfo = {}
+stuScoreInfo = []
+stuScoreIndex = []
+stuInfo['lblClass'] = stuInfoTable.find(id='lblClass').string
+stuInfo['lblStdcode'] = stuInfoTable.find(id='lblStdcode').string
+stuInfo['lblStdname'] = stuInfoTable.find(id='lblStdname').string
+stuInfo['lblIdentity'] = stuInfoTable.find(id='lblIdentity').string
+stuInfo['lblYearterm'] = stuInfoTable.find(id='lblYearterm').string
+stuInfo['lblTermcount'] = stuInfoTable.find(id='lblTermcount').string
+stuInfo['lblEnglish'] = stuInfoTable.find(id='GridView2').find('td').string
+stuInfo['lblEthics'] = stuInfoTable.find(id='GridView3').find('td').string
+
+# add index
+for i in stuScoreTable[0].findAll('th'):
+    stuScoreIndex.append(i.string)
+stuScoreInfo.append(stuScoreIndex)
+
+# add each entry
+for i in range(1, len(stuScoreTable)):
+    td = stuScoreTable[i].findAll('td')
+    line = []
+    for j in range(len(td)):
+        line.append(td[j].string)
+    stuScoreInfo.append(line)
+
+print(tabulate(stuScoreInfo, tablefmt='fancy_grid'))
