@@ -11,7 +11,24 @@ import requests
 from bs4 import BeautifulSoup
 # print table
 from tabulate import tabulate
-import pandas as pd
+
+def ParseGrid(stuScoreTable):
+    stuScoreInfo = []
+    for i in stuScoreTable.findAll('tr', recursive=False):
+        td = i.findAll('td')
+        th = i.findAll('th')
+        line = []
+        if len(th):
+            for j in th:
+                line.append(j.string)
+        elif len(td):
+            for j in td:
+                if (j.find('span')):
+                    line.append(j.find('span').string)
+                else:
+                    line.append(j.string)
+        stuScoreInfo.append(line)
+    return stuScoreInfo
 
 parser1 = ArgumentParser(description='Web crawler for NCTU class schedule.')
 parser1.add_argument('username', help='username of NCTU portal', type=str)
@@ -77,20 +94,7 @@ stuInfo['lblTermcount'] = stuInfoTable.find(id='lblTermcount').string
 stuInfo['lblEnglish'] = stuInfoTable.find(id='GridView2').find('td').string
 stuInfo['lblEthics'] = stuInfoTable.find(id='GridView3').find('td').string
 
-stuScoreInfo = []
-
-for i in stuScoreTable.findAll('tr', recursive=False):
-    td = i.findAll('td')
-    th = i.findAll('th')
-    line = []
-    if len(th):
-        for j in th:
-            line.append(j.string)
-    elif len(td):
-        for j in td:
-            line.append(j.string)
-    stuScoreInfo.append(line)
-
+stuScoreInfo = ParseGrid(stuScoreTable)
 print(tabulate(stuScoreInfo, tablefmt='fancy_grid'))
 
 while True:
@@ -98,22 +102,7 @@ while True:
     if Semester == 0:
         res = ses.get('https://regist.nctu.edu.tw/p_student/grd_stdscoreedit.aspx')
         soup = BeautifulSoup(res.content, 'lxml')
-        stuScoreTable = soup.find(id='GridView1')
-        stuScoreInfo = []
-        for i in stuScoreTable.findAll('tr', recursive=False):
-            td = i.findAll('td')
-            th = i.findAll('th')
-            line = []
-            if len(th):
-                for j in th:
-                    line.append(j.string)
-            elif len(td):
-                for j in td:
-                    if (j.find('span')):
-                        line.append(j.find('span').string)
-                    else:
-                        line.append(j.string)
-            stuScoreInfo.append(line)
+        stuScoreInfo = ParseGrid(soup.find(id='GridView1'))
         print(tabulate(stuScoreInfo, tablefmt='fancy_grid'))
         break
     elif Semester >= len(stuScoreInfo):
@@ -123,21 +112,6 @@ while True:
         Semester = stuScoreInfo[Semester][1].replace('上', '1').replace('下', '2')
         res = ses.get('https://regist.nctu.edu.tw/p_student/grd_stdscoreedit.aspx?yearterm=' + Semester)
         soup = BeautifulSoup(res.content, 'lxml')
-        stuScoreTable = soup.find(id='divWorking').find('table').findAll('tr', recursive=False)[2].find(id='GridView1')
-        stuScoreInfo = []
-        for i in stuScoreTable.findAll('tr', recursive=False):
-            td = i.findAll('td')
-            th = i.findAll('th')
-            line = []
-            if len(th):
-                for j in th:
-                    line.append(j.string)
-            elif len(td):
-                for j in td:
-                    if (j.find('span')):
-                        line.append(j.find('span').string)
-                    else:
-                        line.append(j.string)
-            stuScoreInfo.append(line)
+        stuScoreInfo = ParseGrid(soup.find(id='GridView1'))
         print(tabulate(stuScoreInfo, tablefmt='fancy_grid'))
         break
