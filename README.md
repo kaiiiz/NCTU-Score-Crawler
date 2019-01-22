@@ -10,9 +10,9 @@ cd NCTU_Score_Crawler
 pip install -r requirements.txt
 ```
 
-You should install [tesseract](https://github.com/tesseract-ocr/tesseract/wiki) to recognize captcha.
+Beside the python packages, you also need [tesseract](https://github.com/tesseract-ocr/tesseract/wiki) to recognize captcha.
 
-Here is a tutorial for Arch Linux user:
+Here is an example for Arch Linux user:
 
 ```
 yaourt -S tesseract tesseract-data-eng
