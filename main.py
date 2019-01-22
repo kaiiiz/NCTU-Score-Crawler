@@ -103,27 +103,32 @@ def main():
     print(tabulate(stuScore, tablefmt='fancy_grid'))
 
     while True:
-        Semester = int(input('Enter your semester (0:ALL): '))
-        if Semester == 0:
-            # Get Score, Soup
-            url = 'https://regist.nctu.edu.tw/p_student/grd_stdscoreedit.aspx'
-            stuScore, soup = ParseGrid(ses, url)
-            # Print Table
-            print(tabulate(stuScore, tablefmt='fancy_grid'))
-            PrintFooter(soup)
-            break
-        elif Semester >= len(stuScore):
-            print('Invalid number.')
+        Semester = input('Enter your semester (0:ALL): ')
+        if Semester == '':
+            print('Invalid.')
             continue
         else:
-            # Get Score, Soup
-            Semester = stuScore[Semester][1].replace('上', '1').replace('下', '2')
-            url = 'https://regist.nctu.edu.tw/p_student/grd_stdscoreedit.aspx?yearterm=' + Semester
-            stuScore, soup = ParseGrid(ses, url)
-            # Print Table
-            print(tabulate(stuScore, tablefmt='fancy_grid'))
-            PrintFooter(soup)
-            break
+            Semester = int(Semester)
+            if Semester == 0:
+                # Get Score, Soup
+                url = 'https://regist.nctu.edu.tw/p_student/grd_stdscoreedit.aspx'
+                stuScore, soup = ParseGrid(ses, url)
+                # Print Table
+                print(tabulate(stuScore, tablefmt='fancy_grid'))
+                PrintFooter(soup)
+                break
+            elif Semester >= len(stuScore):
+                print('Invalid number.')
+                continue
+            else:
+                # Get Score, Soup
+                Semester = stuScore[Semester][1].replace('上', '1').replace('下', '2')
+                url = 'https://regist.nctu.edu.tw/p_student/grd_stdscoreedit.aspx?yearterm=' + Semester
+                stuScore, soup = ParseGrid(ses, url)
+                # Print Table
+                print(tabulate(stuScore, tablefmt='fancy_grid'))
+                PrintFooter(soup)
+                break
 
 if __name__ == "__main__":
     main()
