@@ -63,11 +63,11 @@ res = ses.post("https://regist.nctu.edu.tw/login_users_ldap.aspx", data=submit)
 res = ses.get('https://regist.nctu.edu.tw/p_student/grd_stdscorelist.aspx')
 soup = BeautifulSoup(res.content, 'lxml')
 
-stuInfoTable = soup.find(id='divWorking').find('table').find('tr').find_next('tr')
-stuScoreTable = soup.find(id='divWorking').find('table').find(id='GridView1').findAll('tr')
+stuScoreList = soup.find(id='divWorking').find('table').findAll('tr', recursive=False)
+stuInfoTable = stuScoreList[1]
+stuScoreTable = stuScoreList[2].find(id='GridView1')
+
 stuInfo = {}
-stuScoreInfo = []
-stuScoreIndex = []
 stuInfo['lblClass'] = stuInfoTable.find(id='lblClass').string
 stuInfo['lblStdcode'] = stuInfoTable.find(id='lblStdcode').string
 stuInfo['lblStdname'] = stuInfoTable.find(id='lblStdname').string
@@ -77,17 +77,67 @@ stuInfo['lblTermcount'] = stuInfoTable.find(id='lblTermcount').string
 stuInfo['lblEnglish'] = stuInfoTable.find(id='GridView2').find('td').string
 stuInfo['lblEthics'] = stuInfoTable.find(id='GridView3').find('td').string
 
-# add index
-for i in stuScoreTable[0].findAll('th'):
-    stuScoreIndex.append(i.string)
-stuScoreInfo.append(stuScoreIndex)
+stuScoreInfo = []
 
-# add each entry
-for i in range(1, len(stuScoreTable)):
-    td = stuScoreTable[i].findAll('td')
+for i in stuScoreTable.findAll('tr', recursive=False):
+    td = i.findAll('td')
+    th = i.findAll('th')
     line = []
-    for j in range(len(td)):
-        line.append(td[j].string)
+    if len(th):
+        for j in th:
+            line.append(j.string)
+    elif len(td):
+        for j in td:
+            line.append(j.string)
     stuScoreInfo.append(line)
 
 print(tabulate(stuScoreInfo, tablefmt='fancy_grid'))
+
+while True:
+    Semester = int(input('Enter your semester: '))
+    if Semester == 0:
+        res = ses.get('https://regist.nctu.edu.tw/p_student/grd_stdscoreedit.aspx')
+        soup = BeautifulSoup(res.content, 'lxml')
+        stuScoreTable = soup.find(id='GridView1')
+        stuScoreInfo = []
+        for i in stuScoreTable.findAll('tr', recursive=False):
+            td = i.findAll('td')
+            th = i.findAll('th')
+            line = []
+            if len(th):
+                for j in th:
+                    line.append(j.string)
+            elif len(td):
+                for j in td:
+                    if (j.find('span')):
+                        line.append(j.find('span').string)
+                    else:
+                        line.append(j.string)
+            stuScoreInfo.append(line)
+        print(tabulate(stuScoreInfo, tablefmt='fancy_grid'))
+        break
+    elif Semester >= len(stuScoreInfo):
+        print('Invalid enter.')
+        continue
+    else:
+        Semester = stuScoreInfo[Semester][1].replace('上', '1').replace('下', '2')
+        res = ses.get('https://regist.nctu.edu.tw/p_student/grd_stdscoreedit.aspx?yearterm=' + Semester)
+        soup = BeautifulSoup(res.content, 'lxml')
+        stuScoreTable = soup.find(id='divWorking').find('table').findAll('tr', recursive=False)[2].find(id='GridView1')
+        stuScoreInfo = []
+        for i in stuScoreTable.findAll('tr', recursive=False):
+            td = i.findAll('td')
+            th = i.findAll('th')
+            line = []
+            if len(th):
+                for j in th:
+                    line.append(j.string)
+            elif len(td):
+                for j in td:
+                    if (j.find('span')):
+                        line.append(j.find('span').string)
+                    else:
+                        line.append(j.string)
+            stuScoreInfo.append(line)
+        print(tabulate(stuScoreInfo, tablefmt='fancy_grid'))
+        break
