@@ -8,6 +8,7 @@ from io import BytesIO
 import pytesseract
 # Crawer
 import requests
+from bs4 import BeautifulSoup
 
 parser1 = ArgumentParser(description='Web crawler for NCTU class schedule.')
 parser1.add_argument('username', help='username of NCTU portal', type=str)
@@ -44,3 +45,15 @@ while True:
             print("Wrong ID number.")
             exit()
     print('Wrong captcha code, retry.')
+
+res = ses.get('https://portal.nctu.edu.tw/portal/relay.php?D=regist')
+soup = BeautifulSoup(res.content, 'lxml')
+form = soup.find_all("input")
+submit = {}
+for i in form:
+    if i.attrs['name'] == "Chk_SSO":
+        submit[i.attrs['name']] = "checked"
+    else:
+        submit[i.attrs['name']] = i.attrs['value']
+res = ses.post("https://regist.nctu.edu.tw/login_users_ldap.aspx", data=submit)
+print(res.text)
