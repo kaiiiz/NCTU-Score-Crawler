@@ -1,6 +1,6 @@
 # NCTU Score Crawler
 
-把[學籍成績管理系統](https://regist.nctu.edu.tw/)的成績全部抓下來
+把自己[學籍成績管理系統](https://regist.nctu.edu.tw/)上面的成績全部抓下來
 
 ## Install
 
@@ -10,7 +10,7 @@ cd NCTU_Score_Crawler
 pip install -r requirements.txt
 ```
 
-You should also install [tesseract](https://github.com/tesseract-ocr/tesseract/wiki) to recognize captcha
+You should install [tesseract](https://github.com/tesseract-ocr/tesseract/wiki) to recognize captcha.
 
 Here is a tutorial for Arch Linux user:
 
@@ -24,3 +24,5 @@ export TESSDATA_PREFIX=/usr/share/tessdata
 ```
 python main.py {student_id}
 ```
+
+After enter your student id, you will be asked to enter your portal password.
