@@ -91,7 +91,7 @@ def PrintFooter(soup):
 
 def main():
     # Parse Argument
-    parser = ArgumentParser(description='Web crawler for NCTU Student\'s Grade.')
+    parser = ArgumentParser(description='Web crawler for NCTU Student\'s Score.')
     parser.add_argument('username', help='username of NCTU portal', type=str)
     args = parser.parse_args()
     password = getpass.getpass('Password:')
