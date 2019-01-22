@@ -87,10 +87,11 @@ def PrintFooter(soup):
             print(s.string, end='')
         else:
             print(' ', end='')
+    print()
 
 def main():
     # Parse Argument
-    parser = ArgumentParser(description='Web crawler for NCTU Score.')
+    parser = ArgumentParser(description='Web crawler for NCTU Student\'s Grade.')
     parser.add_argument('username', help='username of NCTU portal', type=str)
     args = parser.parse_args()
     password = getpass.getpass('Password:')
@@ -102,7 +103,7 @@ def main():
     print(tabulate(stuScore, tablefmt='fancy_grid'))
 
     while True:
-        Semester = int(input('Enter your semester: '))
+        Semester = int(input('Enter your semester (0:ALL): '))
         if Semester == 0:
             # Get Score, Soup
             url = 'https://regist.nctu.edu.tw/p_student/grd_stdscoreedit.aspx'
