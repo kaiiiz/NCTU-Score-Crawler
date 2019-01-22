@@ -13,24 +13,6 @@ from bs4 import BeautifulSoup
 # Table
 from tabulate import tabulate
 
-def ParseGrid(stuScoreTable):
-    stuScoreInfo = []
-    for i in stuScoreTable.findAll('tr', recursive=False):
-        td = i.findAll('td')
-        th = i.findAll('th')
-        line = []
-        if len(th):
-            for j in th:
-                line.append(j.string)
-        elif len(td):
-            for j in td:
-                if (j.find('span')):
-                    line.append(j.find('span').string)
-                else:
-                    line.append(j.string)
-        stuScoreInfo.append(line)
-    return stuScoreInfo
-
 def LoginPortal(username, password):
     ses = requests.Session()
     res = ses.get('https://portal.nctu.edu.tw/captcha/pic.php')
@@ -77,26 +59,34 @@ def LoginRegistSys(ses):
     ses.post("https://regist.nctu.edu.tw/login_users_ldap.aspx", data=submit)
     return ses
 
-def ParseOverallScore(ses):
-    stuInfo = {}
-    res = ses.get('https://regist.nctu.edu.tw/p_student/grd_stdscorelist.aspx')
+def ParseGrid(ses, url):
+    res = ses.get(url)
     soup = BeautifulSoup(res.content, 'lxml')
+    stuScore = []
+    stuScoreTable = soup.find(id='GridView1')
+    for i in stuScoreTable.findAll('tr', recursive=False):
+        td = i.findAll('td')
+        th = i.findAll('th')
+        line = []
+        if len(th):
+            for j in th:
+                line.append(j.string)
+        elif len(td):
+            for j in td:
+                if (j.find('span')):
+                    line.append(j.find('span').string)
+                else:
+                    line.append(j.string)
+        stuScore.append(line)
+    return stuScore, soup
 
-    stuScoreList = soup.find(id='divWorking').find('table').findAll('tr', recursive=False)
-    stuInfoTable = stuScoreList[1]
-    stuScoreTable = stuScoreList[2].find(id='GridView1')
-
-    stuInfo['lblClass'] = stuInfoTable.find(id='lblClass').string
-    stuInfo['lblStdcode'] = stuInfoTable.find(id='lblStdcode').string
-    stuInfo['lblStdname'] = stuInfoTable.find(id='lblStdname').string
-    stuInfo['lblIdentity'] = stuInfoTable.find(id='lblIdentity').string
-    stuInfo['lblYearterm'] = stuInfoTable.find(id='lblYearterm').string
-    stuInfo['lblTermcount'] = stuInfoTable.find(id='lblTermcount').string
-    stuInfo['lblEnglish'] = stuInfoTable.find(id='GridView2').find('td').string
-    stuInfo['lblEthics'] = stuInfoTable.find(id='GridView3').find('td').string
-
-    stuScoreInfo = ParseGrid(stuScoreTable)
-    return stuInfo, stuScoreInfo
+def PrintFooter(soup):
+    for i in soup.find(id='trScore').findAll('td', recursive=False):
+        s = i.find('span')
+        if s:
+            print(s.string, end='')
+        else:
+            print(' ', end='')
 
 def main():
     # Parse Argument
@@ -107,30 +97,31 @@ def main():
     # Login System
     ses = LoginPortal(args.username, password)
     ses = LoginRegistSys(ses)
-    # Get Overall Score
-    stuInfo, stuScoreInfo = ParseOverallScore(ses)
-    print(stuInfo['lblClass'], stuInfo['lblStdcode'], stuInfo['lblStdname'], stuInfo['lblIdentity'], stuInfo['lblYearterm'], stuInfo['lblTermcount'])
-    print(stuInfo['lblEnglish'])
-    print(stuInfo['lblEthics'])
-    print(tabulate(stuScoreInfo, tablefmt='fancy_grid'))
+    # Print Overall Score
+    stuScore, soup = ParseGrid(ses, 'https://regist.nctu.edu.tw/p_student/grd_stdscorelist.aspx')
+    print(tabulate(stuScore, tablefmt='fancy_grid'))
 
     while True:
         Semester = int(input('Enter your semester: '))
         if Semester == 0:
-            res = ses.get('https://regist.nctu.edu.tw/p_student/grd_stdscoreedit.aspx')
-            soup = BeautifulSoup(res.content, 'lxml')
-            stuScoreInfo = ParseGrid(soup.find(id='GridView1'))
-            print(tabulate(stuScoreInfo, tablefmt='fancy_grid'))
+            # Get Score, Soup
+            url = 'https://regist.nctu.edu.tw/p_student/grd_stdscoreedit.aspx'
+            stuScore, soup = ParseGrid(ses, url)
+            # Print Table
+            print(tabulate(stuScore, tablefmt='fancy_grid'))
+            PrintFooter(soup)
             break
-        elif Semester >= len(stuScoreInfo):
+        elif Semester >= len(stuScore):
             print('Invalid number.')
             continue
         else:
-            Semester = stuScoreInfo[Semester][1].replace('上', '1').replace('下', '2')
-            res = ses.get('https://regist.nctu.edu.tw/p_student/grd_stdscoreedit.aspx?yearterm=' + Semester)
-            soup = BeautifulSoup(res.content, 'lxml')
-            stuScoreInfo = ParseGrid(soup.find(id='GridView1'))
-            print(tabulate(stuScoreInfo, tablefmt='fancy_grid'))
+            # Get Score, Soup
+            Semester = stuScore[Semester][1].replace('上', '1').replace('下', '2')
+            url = 'https://regist.nctu.edu.tw/p_student/grd_stdscoreedit.aspx?yearterm=' + Semester
+            stuScore, soup = ParseGrid(ses, url)
+            # Print Table
+            print(tabulate(stuScore, tablefmt='fancy_grid'))
+            PrintFooter(soup)
             break
 
 if __name__ == "__main__":
