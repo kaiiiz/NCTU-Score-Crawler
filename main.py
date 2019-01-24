@@ -123,7 +123,7 @@ def main():
                 continue
             else:
                 # Get Score, Soup
-                Semester = stuScore[Semester][1].replace('上', '1').replace('下', '2').replace('署', '3')
+                Semester = stuScore[Semester][1].replace('上', '1').replace('下', '2').replace('暑', '3')
                 url = 'https://regist.nctu.edu.tw/p_student/grd_stdscoreedit.aspx?yearterm=' + Semester
                 stuScore, soup = ParseGrid(ses, url)
                 # Print Table
