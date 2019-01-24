@@ -1,5 +1,5 @@
 import sys
-# parse
+# Argparser
 from argparse import ArgumentParser
 import getpass
 # Captcha
@@ -7,11 +7,12 @@ from PIL import Image
 from PIL import ImageEnhance
 from io import BytesIO
 import pytesseract
-# Crawer
+# Crawler
 import requests
 from bs4 import BeautifulSoup
 # Table
 from tabulate import tabulate
+import wcwidth
 
 def LoginPortal(username, password):
     ses = requests.Session()
@@ -103,7 +104,7 @@ def main():
     print(tabulate(stuScore, tablefmt='fancy_grid'))
 
     while True:
-        Semester = input('Enter your semester (0:ALL): ')
+        Semester = input('Enter the number in leftest column (0:ALL): ')
         if Semester == '':
             print('Invalid.')
             continue
@@ -122,7 +123,7 @@ def main():
                 continue
             else:
                 # Get Score, Soup
-                Semester = stuScore[Semester][1].replace('上', '1').replace('下', '2')
+                Semester = stuScore[Semester][1].replace('上', '1').replace('下', '2').replace('署', '3')
                 url = 'https://regist.nctu.edu.tw/p_student/grd_stdscoreedit.aspx?yearterm=' + Semester
                 stuScore, soup = ParseGrid(ses, url)
                 # Print Table
