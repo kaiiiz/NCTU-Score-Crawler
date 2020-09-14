@@ -10,6 +10,24 @@ from bs4 import BeautifulSoup
 from tabulate import tabulate
 import wcwidth
 
+
+GPA_MAP = {
+    'A+': 4.3,
+    'A': 4,
+    'A-': 3.7,
+    'B+': 3.3,
+    'B': 3,
+    'B-': 2.7,
+    'C+': 2.3,
+    'C': 2,
+    'C-': 1.7,
+    'D': 1,
+    'E': 0,
+    'X': 0,
+}
+
+GPA_IGNORE = ['通過', '不通過', 'W']
+
 def LoginPortal(username, password):
     ses = requests.Session()
     ses.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; rv:68.0) Gecko/20100101 Firefox/68.0'})
@@ -87,6 +105,21 @@ def PrintFooter(soup):
             print(' ', end='')
     print()
 
+def CalGPA(stuScore):
+    header = stuScore[0]
+    credit_idx = header.index('學分')
+    grade_idx = header.index('等級成績')
+    credit_total = 0
+    grade_weight_total = 0
+    for row in stuScore[1:]:
+        if row[grade_idx] not in GPA_IGNORE:
+            credit = float(row[credit_idx])
+            grade = GPA_MAP[row[grade_idx]]
+            credit_total += credit
+            grade_weight_total += credit * grade
+
+    return grade_weight_total / credit_total
+
 def main():
     # Parse Argument
     parser = ArgumentParser(description='Web crawler for NCTU Student\'s Score.')
@@ -111,9 +144,11 @@ def main():
                 # Get Score, Soup
                 url = 'https://regist.nctu.edu.tw/p_student/grd_stdscoreedit.aspx'
                 stuScore, soup = ParseGrid(ses, url)
+                gpa = CalGPA(stuScore)
                 # Print Table
                 print(tabulate(stuScore, tablefmt='fancy_grid'))
                 PrintFooter(soup)
+                print(f"GPA: {gpa}")
                 break
             elif Semester >= len(stuScore):
                 print('Invalid number.')
