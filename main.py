@@ -1,21 +1,18 @@
 import sys
-# Argparser
 from argparse import ArgumentParser
 import getpass
-# Captcha
 from PIL import Image
 from PIL import ImageEnhance
 from io import BytesIO
 import pytesseract
-# Crawler
 import requests
 from bs4 import BeautifulSoup
-# Table
 from tabulate import tabulate
 import wcwidth
 
 def LoginPortal(username, password):
     ses = requests.Session()
+    ses.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; rv:68.0) Gecko/20100101 Firefox/68.0'})
     res = ses.get('https://portal.nctu.edu.tw/captcha/pic.php')
     while True:
         res = ses.get('https://portal.nctu.edu.tw/captcha/claviska-simple-php-captcha/pic.php', stream=True) # set captcha type
