@@ -2,6 +2,8 @@
 
 把自己[學籍成績管理系統](https://regist.nctu.edu.tw/)上面的成績全部抓下來
 
+> ⚠ NCTU 變 NYCU、portal 引進 reCAPTCHA，這個腳本已經沒用了
+
 ## Install
 
 ```
